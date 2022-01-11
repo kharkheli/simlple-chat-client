@@ -1,25 +1,38 @@
-import logo from './logo.svg';
-import './App.css';
+import React, { useState, useEffect } from 'react'
+import LogIn from './LogIn'
+import {
+  BrowserRouter as Router,
+  Route,
+  Routes,
+  Navigate,
+} from 'react-router-dom'
+
+import { useGlobalContext } from './context'
+import Chat from './chat/Chat'
 
 function App() {
+  //importing if user is already signed in and displaying page acordingly
+  const { user } = useGlobalContext()
   return (
-    <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.js</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
-    </div>
-  );
+    <>
+      <Router>
+        <Routes>
+          {/* controlling what user can acces depending on sing in state */}
+          <Route
+            exact
+            path="/sign-in"
+            element={user.username ? <Navigate to="/" /> : <LogIn />}
+          />
+          <Route
+            exact
+            path="/"
+            element={user.username ? <Chat /> : <Navigate to="/sign-in" />}
+          />
+        </Routes>
+        {/* <h1>{data ? data : 'LOADING...'}</h1> */}
+      </Router>
+    </>
+  )
 }
 
-export default App;
+export default App
