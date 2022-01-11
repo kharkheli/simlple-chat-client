@@ -12,42 +12,22 @@ import { reducer } from './reducer'
 import { io } from 'socket.io-client'
 import { useGlobalContext } from '../context'
 
-const socket = io('http://localhost:3001/', { autoConnect: false })
-
-const defaultState = {
-  messages: [
-    { state: 'sender', msg: 'hello mate whats up', time: '12:50' },
-    { state: 'reciever', msg: 'hello mate whats up', time: '12:50' },
-    { state: 'reciever', msg: 'hello mate whats up', time: '12:50' },
-    { state: 'sender', msg: 'hello mate whats up', time: '12:50' },
-    { state: 'reciever', msg: 'hello mate whats up', time: '12:50' },
-    { state: 'sender', msg: 'hello mate whats up', time: '12:50' },
-    { state: 'reciever', msg: 'hello mate whats up', time: '12:50' },
-    { state: 'sender', msg: 'hello mate whats up', time: '12:50' },
-    { state: 'reciever', msg: 'hello mate whats up', time: '12:50' },
-    { state: 'sender', msg: 'hello mate whats up', time: '12:50' },
-    { state: 'reciever', msg: 'hello mate whats up', time: '12:50' },
-  ],
-  socket,
-}
-
 function MessageArea(body) {
   const { user } = useGlobalContext()
-  const [state, dispatch] = useReducer(reducer, defaultState)
   const [message, setMessage] = useState('')
-  useEffect(() => {
-    dispatch({ type: 'RESET', payload: defaultState })
-  }, [body])
-  useEffect(async () => {
-    socket.auth = { username: user.username }
-    socket.connect()
-    socket.onAny((event, ...args) => {
-      console.log(event, args)
-    })
-    socket.on('message sent', (data) => {
-      dispatch({ type: 'MESSAGE_RECIEVED', payload: data })
-    })
-  }, [])
+  // useEffect(() => {
+  //   dispatch({ type: 'RESET', payload: defaultState })
+  // }, [body])
+  // useEffect(async () => {
+  //   socket.auth = { username: user.username }
+  //   socket.connect()
+  //   socket.onAny((event, ...args) => {
+  //     console.log(event, args)
+  //   })
+  //   socket.on('message sent', (data) => {
+  //     dispatch({ type: 'MESSAGE_RECIEVED', payload: data })
+  //   })
+  // }, [])
 
   return (
     <div className="chat-area">
@@ -70,28 +50,28 @@ function MessageArea(body) {
       </header>
       {body.username ? (
         <div className="messages-cont">
-          <Messages {...{ state, dispatch, body }} />
+          <Messages {...body} />
         </div>
       ) : null}
       <form
         className="send-area"
         onSubmit={(e) => {
           e.preventDefault()
-          if (message) {
-            // socket.emit fires twice when in reducer
-            //but even so i call reducer to update data for local user
-            dispatch({
-              type: 'SEND_MESSAGE',
-              payload: message,
-            })
+          // if (message) {
+          //   // socket.emit fires twice when in reducer
+          //   //but even so i call reducer to update data for local user
+          //   dispatch({
+          //     type: 'SEND_MESSAGE',
+          //     payload: message,
+          //   })
 
-            socket.emit('message sent', {
-              content: message,
-              to: body.username,
-              from: user.username,
-            })
-            setMessage('')
-          }
+          //   socket.emit('message sent', {
+          //     content: message,
+          //     to: body.username,
+          //     from: user.username,
+          //   })
+          //   setMessage('')
+          // }
         }}
       >
         <div className="input-cont">

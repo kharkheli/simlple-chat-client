@@ -2,33 +2,7 @@ import React from 'react'
 import { RiTimeLine } from 'react-icons/ri'
 import { useGlobalContext } from '../context'
 
-// const messages = [
-//   { state: 'sender', msg: 'hallo sucker', time: '12:50' },
-//   { state: 'reciever', msg: 'hallo sucker', time: '12:50' },
-//   { state: 'reciever', msg: 'hallo sucker', time: '12:50' },
-//   { state: 'sender', msg: 'hallo sucker', time: '12:50' },
-//   { state: 'reciever', msg: 'hallo sucker', time: '12:50' },
-//   { state: 'sender', msg: 'hallo sucker', time: '12:50' },
-//   { state: 'reciever', msg: 'hallo sucker', time: '12:50' },
-//   { state: 'sender', msg: 'hallo sucker', time: '12:50' },
-//   { state: 'reciever', msg: 'hallo sucker', time: '12:50' },
-//   { state: 'sender', msg: 'hallo sucker', time: '12:50' },
-//   { state: 'reciever', msg: 'hallo sucker', time: '12:50' },
-// ]
-
-// const sender = {
-//   img:
-//     'https://cdn.pixabay.com/photo/2017/03/09/09/57/stack-2129070_960_720.jpg',
-//   name: 'mustafa',
-// }
-
-// const reciever = {
-//   img:
-//     'https://cdn.pixabay.com/photo/2018/05/07/10/48/husky-3380548_960_720.jpg',
-//   name: 'shmagi',
-// }
-
-function Messages({ state, dispatch, body }) {
+function Messages(body) {
   const { messages } = body
   const sender = { ...body }
   const { user } = useGlobalContext()
@@ -36,7 +10,7 @@ function Messages({ state, dispatch, body }) {
     <div>
       {messages.map((message) => {
         return (
-          <div className="single-msg">
+          <div key={message._id} className="single-msg">
             {message.sender === body.username ? (
               <img className="message-img" src={sender.img} alt="" />
             ) : null}

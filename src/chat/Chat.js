@@ -7,41 +7,7 @@ import MessageArea from './MessageArea'
 import { io } from 'socket.io-client'
 import axios from 'axios'
 import OtherUsers from './OtherUsers'
-
-const reducer = (state, action) => {
-  if (action.type === 'SEARCH_FRIEND') {
-    const result = state.friends.filter((friend) =>
-      //returning only friends whose name starts with search value
-      friend.username.startsWith(action.payload),
-    )
-    return { ...state, friends: result, friend: action.payload }
-  }
-  if (action.type === 'USER_SEARCH') {
-    return { ...state, otherUsers: [...action.payload], loadingUsers: false }
-  }
-  if (action.type === 'LOADING_USERS') {
-    return { ...state, loadingUsers: true }
-  }
-  if (action.type === 'UPDATE_FRIENDS') {
-    return { ...state, friends: action.payload }
-  }
-  if (action.type === 'ADD_FRIEND') {
-    let newFriend
-    const otherUsers = state.otherUsers.filter((user) => {
-      if (user.username === action.payload) {
-        newFriend = user
-        return
-      }
-      return user
-    })
-    return {
-      ...state,
-      friends: [...state.friends, newFriend],
-      otherUsers: [...otherUsers],
-    }
-  }
-  return state
-}
+import { reducer } from './reducer'
 
 const socket = io('http://localhost:3001/', { autoConnect: false })
 
@@ -51,6 +17,7 @@ const defaultState = {
   socket,
   otherUsers: [],
   loadingUsers: false,
+  chatWith: {},
 }
 
 function Chat() {
@@ -58,17 +25,17 @@ function Chat() {
   const [state, dispatch] = useReducer(reducer, defaultState)
   const [chatWith, setChatWith] = useState({})
 
-  useEffect(async () => {
-    const friends = []
+  useEffect(() => {
     for (const friend of user.friends) {
       axios
         .get(`http://localhost:3001/user/${friend}?requester=${user.username}`)
         .then((res) => {
-          friends.push({ ...res.data.user, messages: res.data.messages })
+          dispatch({
+            type: 'UPDATE_FRIENDS',
+            payload: { ...res.data.user, messages: res.data.messages },
+          })
         })
     }
-    dispatch({ type: 'UPDATE_FRIENDS', payload: friends })
-    setChatWith(state.friends[0])
   }, [])
   useEffect(async () => {
     dispatch({ type: 'LOADING_USERS' })
@@ -107,7 +74,7 @@ function Chat() {
             <div
               key={friend.username}
               onClick={() => {
-                setChatWith({ ...friend })
+                dispatch({ type: 'CHAT_WITH', payload: { ...friend } })
               }}
             >
               <Friend {...friend} />
@@ -131,7 +98,7 @@ function Chat() {
         )}
       </aside>
       <div className="message-area-cont">
-        <MessageArea {...chatWith} />
+        <MessageArea {...state.chatWith} />
       </div>
     </div>
   )
