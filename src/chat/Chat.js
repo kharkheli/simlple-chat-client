@@ -1,4 +1,4 @@
-import React, { useState, useReducer, useEffect } from 'react'
+import React, { useRef, useReducer, useEffect } from 'react'
 import { useGlobalContext } from '../context'
 import Greeting from '../Greeting'
 import { BsSearch } from 'react-icons/bs'
@@ -8,8 +8,11 @@ import { io } from 'socket.io-client'
 import axios from 'axios'
 import OtherUsers from './OtherUsers'
 import { reducer } from './reducer'
+import msgSound from '../message1.mp3'
 
-const socket = io('http://localhost:3001/', { autoConnect: false })
+const socket = io('http://localhost:3001', {
+  autoConnect: false,
+})
 
 const defaultState = {
   friends: [],
@@ -21,13 +24,14 @@ const defaultState = {
 }
 
 function Chat() {
+  const sound = useRef(null)
   const { user } = useGlobalContext()
   const [state, dispatch] = useReducer(reducer, defaultState)
 
   useEffect(() => {
     for (const friend of user.friends) {
       axios
-        .get(`http://localhost:3001/user/${friend}?requester=${user.username}`)
+        .get(`http://localhost:3001user/${friend}?requester=${user.username}`)
         .then((res) => {
           dispatch({
             type: 'UPDATE_FRIENDS',
@@ -39,11 +43,20 @@ function Chat() {
   useEffect(async () => {
     socket.auth = { username: user.username }
     socket.connect()
-    socket.onAny((event, ...args) => {
-      console.log(event, args)
-    })
+    // socket.onAny((event, ...args) => {
+    //   console.log(event, args)
+    // })
     socket.on('message sent', (data) => {
       dispatch({ type: 'RECIEVE_MESSAGE', payload: data })
+      console.log(sound.current)
+      sound.current.play()
+    })
+
+    socket.on('typing', (data) => {
+      dispatch({ type: 'TYPING', payload: data })
+    })
+    socket.on('stop typing', (data) => {
+      dispatch({ type: 'STOP_TYPING', payload: data })
     })
   }, [])
 
@@ -51,7 +64,7 @@ function Chat() {
     dispatch({ type: 'LOADING_USERS' })
     axios
       .get(
-        `http://localhost:3001/user?starter=${state.friend}&username=${user.username}`,
+        `http://localhost:3001user?starter=${state.friend}&username=${user.username}`,
       )
       .then((res) => {
         dispatch({ type: 'USER_SEARCH', payload: res.data })
@@ -65,6 +78,9 @@ function Chat() {
           <i>
             <BsSearch />
           </i>
+          <audio controls ref={sound} style={{ display: 'none' }}>
+            <source src={msgSound} />
+          </audio>
           <input
             className="search-box"
             type="text"
@@ -82,9 +98,18 @@ function Chat() {
         {state.friends.map((friend, index) => {
           return (
             <div
+              className={
+                state.friends[state.chatWith].username === friend.username
+                  ? 'active-friend'
+                  : null
+              }
               key={friend.username}
               onClick={() => {
                 dispatch({ type: 'CHAT_WITH', payload: index })
+                dispatch({
+                  type: 'SEEN',
+                  payload: { from: friend.username, to: user.username },
+                })
               }}
             >
               <Friend {...friend} />

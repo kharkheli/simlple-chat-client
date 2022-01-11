@@ -10,7 +10,7 @@ function LogIn() {
   const submitHandle = async (e) => {
     e.preventDefault()
     await axios
-      .post('http://localhost:3001/user/log-in', { username })
+      .post('http://localhost:3001user/log-in', { username })
       .then((res) => {
         const userData = {
           username: res.data.username,

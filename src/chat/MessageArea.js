@@ -28,7 +28,18 @@ function MessageArea({ body, dispatch, socket }) {
   //     dispatch({ type: 'MESSAGE_RECIEVED', payload: data })
   //   })
   // }, [])
-
+  const typing = () => {
+    socket.emit('typing', {
+      from: user.username,
+      to: body.username,
+    })
+  }
+  const stopTyping = () => {
+    socket.emit('stop typing', {
+      from: user.username,
+      to: body.username,
+    })
+  }
   return (
     <div className="chat-area">
       <header>
@@ -48,11 +59,7 @@ function MessageArea({ body, dispatch, socket }) {
           </i>
         </div>
       </header>
-      {body.username ? (
-        <div className="messages-cont">
-          <Messages {...body} />
-        </div>
-      ) : null}
+      {body.username ? <Messages {...body} /> : null}
       <form
         className="send-area"
         onSubmit={(e) => {
@@ -60,6 +67,7 @@ function MessageArea({ body, dispatch, socket }) {
           if (message) {
             // socket.emit fires twice when in reducer
             //but even so i call reducer to update data for local user
+            stopTyping()
             dispatch({
               type: 'SEND_MESSAGE',
               payload: { message, to: body.username, from: user.username },
@@ -79,7 +87,20 @@ function MessageArea({ body, dispatch, socket }) {
             type="text"
             placeholder="Enter Message..."
             value={message}
-            onChange={(e) => setMessage(e.target.value)}
+            onFocus={() => {
+              typing()
+              dispatch({
+                type: 'SEEN',
+                payload: { from: body.username, to: user.username },
+              })
+            }}
+            onBlur={stopTyping}
+            onChange={(e) => {
+              // to not emit socket every time message changes just when it
+              // first changes after the message was sent
+              !message && typing()
+              setMessage(e.target.value)
+            }}
           />
         </div>
         <div className="message-icons">

@@ -10,7 +10,7 @@ function OtherUsers({ dispatch, user }) {
     //this component will dissapear from the dom tree
     setModal(true)
     dispatch({ type: 'ADD_FRIEND', payload: user.username })
-    axios.patch('http://localhost:3001/user', {
+    axios.patch('http://localhost:3001user', {
       user: user.theGuy,
       friend: user.username,
     })
