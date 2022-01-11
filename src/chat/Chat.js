@@ -17,13 +17,12 @@ const defaultState = {
   socket,
   otherUsers: [],
   loadingUsers: false,
-  chatWith: {},
+  chatWith: 0,
 }
 
 function Chat() {
   const { user } = useGlobalContext()
   const [state, dispatch] = useReducer(reducer, defaultState)
-  const [chatWith, setChatWith] = useState({})
 
   useEffect(() => {
     for (const friend of user.friends) {
@@ -37,6 +36,17 @@ function Chat() {
         })
     }
   }, [])
+  useEffect(async () => {
+    socket.auth = { username: user.username }
+    socket.connect()
+    socket.onAny((event, ...args) => {
+      console.log(event, args)
+    })
+    socket.on('message sent', (data) => {
+      dispatch({ type: 'RECIEVE_MESSAGE', payload: data })
+    })
+  }, [])
+
   useEffect(async () => {
     dispatch({ type: 'LOADING_USERS' })
     axios
@@ -74,7 +84,7 @@ function Chat() {
             <div
               key={friend.username}
               onClick={() => {
-                dispatch({ type: 'CHAT_WITH', payload: { ...friend } })
+                dispatch({ type: 'CHAT_WITH', payload: index })
               }}
             >
               <Friend {...friend} />
@@ -98,7 +108,11 @@ function Chat() {
         )}
       </aside>
       <div className="message-area-cont">
-        <MessageArea {...state.chatWith} />
+        <MessageArea
+          body={state.friends[state.chatWith] || {}}
+          dispatch={dispatch}
+          socket={state.socket}
+        />
       </div>
     </div>
   )

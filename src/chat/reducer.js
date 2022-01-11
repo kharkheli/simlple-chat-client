@@ -16,7 +16,7 @@ export const reducer = (state, action) => {
     return {
       ...state,
       friends: [...state.friends, action.payload],
-      chatWith: state.friends[0] || action.payload,
+      chatWith: 0,
     }
   }
   if (action.type === 'ADD_FRIEND') {
@@ -36,6 +36,29 @@ export const reducer = (state, action) => {
   }
   if (action.type === 'CHAT_WITH') {
     return { ...state, chatWith: action.payload }
+  }
+  if (action.type === 'SEND_MESSAGE') {
+    const { message, to, from } = action.payload
+    const friends = state.friends.map((friend) => {
+      if (friend.username === to) {
+        const time = new Date()
+        return {
+          ...friend,
+          messages: [
+            ...friend.messages,
+            {
+              msg: message,
+              sender: from,
+              time: time.getTime(),
+              createdAt: time,
+            },
+          ],
+        }
+      }
+      return friend
+    })
+    console.log(friends)
+    return { ...state, friends }
   }
   return state
 }

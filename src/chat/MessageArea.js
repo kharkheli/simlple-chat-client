@@ -12,7 +12,7 @@ import { reducer } from './reducer'
 import { io } from 'socket.io-client'
 import { useGlobalContext } from '../context'
 
-function MessageArea(body) {
+function MessageArea({ body, dispatch, socket }) {
   const { user } = useGlobalContext()
   const [message, setMessage] = useState('')
   // useEffect(() => {
@@ -57,21 +57,21 @@ function MessageArea(body) {
         className="send-area"
         onSubmit={(e) => {
           e.preventDefault()
-          // if (message) {
-          //   // socket.emit fires twice when in reducer
-          //   //but even so i call reducer to update data for local user
-          //   dispatch({
-          //     type: 'SEND_MESSAGE',
-          //     payload: message,
-          //   })
+          if (message) {
+            // socket.emit fires twice when in reducer
+            //but even so i call reducer to update data for local user
+            dispatch({
+              type: 'SEND_MESSAGE',
+              payload: { message, to: body.username, from: user.username },
+            })
 
-          //   socket.emit('message sent', {
-          //     content: message,
-          //     to: body.username,
-          //     from: user.username,
-          //   })
-          //   setMessage('')
-          // }
+            socket.emit('message sent', {
+              content: message,
+              to: body.username,
+              from: user.username,
+            })
+            setMessage('')
+          }
         }}
       >
         <div className="input-cont">

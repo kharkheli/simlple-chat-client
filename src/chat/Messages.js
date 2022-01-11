@@ -9,8 +9,9 @@ function Messages(body) {
   return (
     <div>
       {messages.map((message) => {
+        const time = new Date(message.createdAt)
         return (
-          <div key={message._id} className="single-msg">
+          <div key={message._id || message.time} className="single-msg">
             {message.sender === body.username ? (
               <img className="message-img" src={sender.img} alt="" />
             ) : null}
@@ -23,7 +24,11 @@ function Messages(body) {
                 <p className="message-text">{message.msg}</p>
                 <p className="sent-time">
                   <RiTimeLine style={{ transform: 'translateY(2px)' }} />{' '}
-                  {message.time}
+                  {time.getHours() +
+                    ':' +
+                    (time.getMinutes() / 10 >= 1
+                      ? time.getMinutes()
+                      : '0' + time.getMinutes())}
                 </p>
               </div>
               {message.sender === user.username ? (
