@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react'
+import { GoPrimitiveDot } from 'react-icons/go'
 
 function Friend(friend) {
   const [message, setMessage] = useState({
@@ -28,6 +29,15 @@ function Friend(friend) {
   return (
     <div className="friend">
       <div className="friend-img-cont">
+        {friend.active ? (
+          <span className="active-user">
+            <GoPrimitiveDot />
+          </span>
+        ) : (
+          <span className="active-user" style={{ color: 'orange' }}>
+            <GoPrimitiveDot />
+          </span>
+        )}
         <img className="friend-img" src={friend.img} alt={friend.username} />
       </div>
 

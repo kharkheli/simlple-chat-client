@@ -8,9 +8,8 @@ import {
   RiSendPlane2Fill,
 } from 'react-icons/ri'
 import Messages from './Messages'
-import { reducer } from './reducer'
-import { io } from 'socket.io-client'
 import { useGlobalContext } from '../context'
+import { GoPrimitiveDot } from 'react-icons/go'
 
 function MessageArea({ body, dispatch, socket }) {
   const { user } = useGlobalContext()
@@ -22,7 +21,7 @@ function MessageArea({ body, dispatch, socket }) {
   //   socket.auth = { username: user.username }
   //   socket.connect()
   //   socket.onAny((event, ...args) => {
-  //     console.log(event, args)
+  //     // console.log(event, args)
   //   })
   //   socket.on('message sent', (data) => {
   //     dispatch({ type: 'MESSAGE_RECIEVED', payload: data })
@@ -45,7 +44,21 @@ function MessageArea({ body, dispatch, socket }) {
       <header>
         <div className="body-info">
           <img className="body-img" src={body.img} alt={body.username} />
-          <h2 className="body-name">{body.username}</h2>
+          <h2 className="body-name">
+            {body.username}{' '}
+            {body.active ? (
+              <span className="active-user" style={{ position: 'static' }}>
+                <GoPrimitiveDot />
+              </span>
+            ) : (
+              <span
+                className="active-user"
+                style={{ position: 'static', color: 'orange' }}
+              >
+                <GoPrimitiveDot />
+              </span>
+            )}
+          </h2>
         </div>
         <div className="tools-cont">
           <i>
@@ -98,7 +111,13 @@ function MessageArea({ body, dispatch, socket }) {
             onChange={(e) => {
               // to not emit socket every time message changes just when it
               // first changes after the message was sent
-              !message && typing()
+              if (!message) {
+                typing()
+                dispatch({
+                  type: 'SEEN',
+                  payload: { from: body.username, to: user.username },
+                })
+              }
               setMessage(e.target.value)
             }}
           />

@@ -1,3 +1,5 @@
+import axios from 'axios'
+
 const sortFriends = (a, b) => {
   const al = a.messages.length
   const bl = b.messages.length
@@ -18,11 +20,7 @@ const sortFriends = (a, b) => {
 
 export const reducer = (state, action) => {
   if (action.type === 'SEARCH_FRIEND') {
-    const result = state.friends.filter((friend) =>
-      //returning only friends whose name starts with search value
-      friend.username.startsWith(action.payload),
-    )
-    return { ...state, friends: result, friend: action.payload }
+    return { ...state, friend: action.payload }
   }
   if (action.type === 'USER_SEARCH') {
     return { ...state, otherUsers: [...action.payload], loadingUsers: false }
@@ -37,6 +35,17 @@ export const reducer = (state, action) => {
       ...state,
       friends,
       chatWith: 0,
+    }
+  }
+  if (action.type === 'BECOME_FRIEND') {
+    const otherUsers = state.otherUsers.filter(
+      (user) => user.username !== action.payload.username,
+    )
+    const friend = { ...action.payload, messages: [] }
+    return {
+      ...state,
+      friends: [...state.friends, friend],
+      otherUsers: [...otherUsers],
     }
   }
   if (action.type === 'ADD_FRIEND') {
@@ -55,7 +64,10 @@ export const reducer = (state, action) => {
     }
   }
   if (action.type === 'CHAT_WITH') {
-    return { ...state, chatWith: action.payload }
+    return {
+      ...state,
+      chatWith: action.payload || state.friends[0].username || undefined,
+    }
   }
   if (action.type === 'SEND_MESSAGE') {
     const { message, to, from } = action.payload
@@ -82,7 +94,7 @@ export const reducer = (state, action) => {
   }
   if (action.type === 'RECIEVE_MESSAGE') {
     const { message } = action.payload
-    // console.log(message)
+    // // console.log(message)
     const friends = state.friends.map((friend) => {
       if (friend.username === message.sender) {
         return { ...friend, messages: [...friend.messages, message] }
@@ -135,6 +147,64 @@ export const reducer = (state, action) => {
       })
     }
     return { ...state, friends }
+  }
+  if (action.type === 'LOAD_FRIENDS') {
+    const friends = action.payload.map((friend) => {
+      return { ...friend.user, messages: friend.messages }
+    })
+    friends.sort(sortFriends)
+    let chatWith = state.chatWith
+    if (0 in friends && !chatWith) {
+      chatWith = friends[0].username
+    }
+    return { ...state, friends: [...state.friends, ...friends], chatWith }
+  }
+
+  if (action.type === 'ACTIVE_USERS') {
+    const activeFriends = action.payload
+    // this needs to be changed ones i am done
+    const friends = state.friends.map((friend) => {
+      if (activeFriends.includes(friend.username)) {
+        return { ...friend, active: true }
+      }
+      return friend
+    })
+    return { ...state, friends }
+  }
+
+  if (action.type === 'USER_CONNECTED') {
+    const username = action.payload
+    // console.log(username)
+    const friends = state.friends.map((friend) => {
+      if (friend.username === username) {
+        return { ...friend, active: true }
+      }
+      return friend
+    })
+    return { ...state, friends }
+  }
+  if (action.type === 'USER_DISCONNECTED') {
+    const username = action.payload
+    // console.log(username)
+    const friends = state.friends.map((friend) => {
+      if (friend.username === username) {
+        return { ...friend, active: false, typing: false }
+      }
+      return friend
+    })
+    return { ...state, friends }
+  }
+  if (action.type === 'CHECK_SENDER') {
+    const { sender, friends, setUser, user } = action.payload
+    let newFriend
+    if (!friends.includes(sender)) {
+      axios
+        .get(`http://localhost:3001/user/${sender}?requester=${user.username}`)
+        .then((res) => {
+          newFriend = { ...res.data.user, messages: res.data.messages }
+        })
+    }
+    // console.log(newFriend)
   }
 
   return state

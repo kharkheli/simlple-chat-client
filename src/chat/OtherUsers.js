@@ -2,16 +2,26 @@ import React, { useState } from 'react'
 import { RiUserAddLine } from 'react-icons/ri'
 import Greeting from '../Greeting'
 import axios from 'axios'
+import { useGlobalContext } from '../context'
 
-function OtherUsers({ dispatch, user }) {
+function OtherUsers({ socket, dispatch, user }) {
+  const { user: theGuy, setUser } = useGlobalContext()
   const [modal, setModal] = useState(false)
   const addFriend = async () => {
     // no need to set this state to false because after click
     //this component will dissapear from the dom tree
-    setModal(true)
+    // setModal(true)
+
     dispatch({ type: 'ADD_FRIEND', payload: user.username })
-    axios.patch('http://localhost:3001user', {
-      user: user.theGuy,
+    setUser({ ...theGuy, friends: [...theGuy.friends, user.username] })
+    // console.log(theGuy)
+    socket.emit('add friend', {
+      from: theGuy.username,
+      to: user.username,
+      theGuy,
+    })
+    axios.patch('http://localhost:3001/user', {
+      user: theGuy.username,
       friend: user.username,
     })
   }

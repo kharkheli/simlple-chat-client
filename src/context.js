@@ -12,7 +12,7 @@ const UserProvider = ({ children }) => {
   useEffect(async () => {
     const username = localStorage.getItem('user')
     if (username) {
-      axios(`http://localhost:3001user/${username}`).then((res) => {
+      axios(`http://localhost:3001/user/${username}`).then((res) => {
         setUser(res.data)
       })
     }

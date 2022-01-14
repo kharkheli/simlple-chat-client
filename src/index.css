@@ -107,8 +107,15 @@ code {
   display: flex;
 }
 
+.message-area-cont {
+  flex-basis: calc(100% - 400px);
+  background-color: #262e35;
+  height: 100vh;
+  overflow-y: hidden;
+}
+
 .friend-list {
-  flex: 25%;
+  flex-basis: 400px;
   height: 100vh;
   background-color: #303841;
   padding: 2rem;
@@ -123,13 +130,6 @@ code {
   font-size: 1.4rem;
   padding: 1rem 0px;
   border-bottom: 1px solid #262e35;
-}
-
-.message-area-cont {
-  flex: 75%;
-  background-color: #262e35;
-  height: 100vh;
-  overflow-y: hidden;
 }
 
 .friend-search {
@@ -175,7 +175,8 @@ code {
 }
 
 .friend-img-cont {
-  flex: 10%;
+  flex-basis: 40px;
+  position: relative;
 }
 
 .friend-img {
@@ -321,6 +322,7 @@ code {
   padding: 0.8rem 1.3rem;
   border-radius: 5px;
   margin-top: 40px;
+  max-width: 80%;
 }
 
 .recieved-msg {
@@ -383,6 +385,10 @@ code {
   right: 10px;
 }
 
+.message-text {
+  overflow-wrap: break-word;
+}
+
 .sender-name {
   position: absolute;
   width: fit-content;
@@ -442,4 +448,68 @@ code {
 .active-friend {
   background-color: #36404a;
   border-radius: 5px;
+}
+
+.load-more {
+  color: #7269ef;
+  padding: 1rem;
+  text-align: center;
+  font-size: 1rem;
+  font-weight: 200;
+  cursor: pointer;
+}
+
+.active-user {
+  color: green;
+  position: absolute;
+  font-family: 'Times New Roman', Times, serif;
+  font-size: 1.2rem;
+  bottom: 0px;
+  right: 0px;
+}
+
+.toggle-friends {
+  display: none;
+}
+
+@media only screen and (max-width: 1000px) {
+  body {
+    font-size: 16px;
+  }
+  .toggle-friends {
+    display: block;
+    position: absolute;
+    color: #abb4d2;
+    font-size: 30px;
+    top: 30px;
+    cursor: pointer;
+  }
+  .chat {
+    position: relative;
+    display: block;
+    overflow: hidden;
+  }
+  .friend-list {
+    position: absolute;
+    z-index: 5;
+    transition: all 1s ease-out;
+    width: 100%;
+    transform: translateX(-101%);
+  }
+  .show-friend-list {
+    transform: translateX(0%);
+  }
+  .tools-cont {
+    font-size: 1.5rem;
+  }
+}
+
+@media only screen and (max-width: 500px) {
+  .tools-cont {
+    font-size: 1rem;
+  }
+  .message-icons i {
+    width: 2rem;
+    line-height: 2rem;
+  }
 }

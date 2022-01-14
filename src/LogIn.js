@@ -9,21 +9,23 @@ function LogIn() {
   const { setUser, setSMessage } = useGlobalContext()
   const submitHandle = async (e) => {
     e.preventDefault()
-    await axios
-      .post('http://localhost:3001user/log-in', { username })
-      .then((res) => {
-        const userData = {
-          username: res.data.username,
-          friends: res.data.friends,
-        }
-        // setting user in localstorage so user remains ever after refreshing
-        localStorage.setItem('user', userData.username)
-        // using useContext to imediatly apply changes acroos the project
-        setUser({ ...userData })
-        setSMessage(res.data.msg + res.data.username)
-        //redirecting user out of sign in
-        setRedirect(true)
-      })
+    if (username) {
+      await axios
+        .post('http://localhost:3001/user/log-in', { username })
+        .then((res) => {
+          // console.log(res.data)
+          const userData = {
+            ...res.data,
+          }
+          // setting user in localstorage so user remains ever after refreshing
+          localStorage.setItem('user', userData.username)
+          // using useContext to imediatly apply changes acroos the project
+          setUser({ ...userData })
+          setSMessage(res.data.msg + res.data.username)
+          //redirecting user out of sign in
+          setRedirect(true)
+        })
+    }
   }
   return (
     <>
