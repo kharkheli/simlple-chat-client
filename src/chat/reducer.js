@@ -45,15 +45,12 @@ export const reducer = (state, action) => {
     const otherUsers = state.otherUsers.filter(
       (user) => user.username !== action.payload.username,
     )
-    const friend = { ...action.payload, messages: [] }
+    const friend = { ...action.payload, messages: [], active: true }
+    state.friendsv1[action.payload.username] = { ...friend }
     return {
       ...state,
       // friends: [...state.friends, friend],
       otherUsers: [...otherUsers],
-      friendsv1: {
-        ...state.friendsv1,
-        [action.payload.username]: { ...action.payload, messages: [] },
-      },
     }
   }
   if (action.type === 'ADD_FRIEND') {
@@ -65,10 +62,9 @@ export const reducer = (state, action) => {
       }
       return user
     })
+    state.friendsv1[action.payload] = { ...newFriend, messages: [] }
     return {
       ...state,
-      // friends: [...state.friends, { ...newFriend, messages: [] }],
-      [action.payload]: { ...newFriend, messages: [] },
       otherUsers: [...otherUsers],
     }
   }
@@ -90,24 +86,6 @@ export const reducer = (state, action) => {
         createdAt: time,
       },
     ]
-    // const friends = state.friends.map((friend) => {
-    //   if (friend.username === to) {
-    //     return {
-    //       ...friend,
-    //       messages: [
-    //         ...friend.messages,
-    //         {
-    //           msg: message,
-    //           sender: from,
-    //           time: time.getTime(),
-    //           createdAt: time,
-    //         },
-    //       ],
-    //     }
-    //   }
-    //   return friend
-    // })
-    // friends.sort(sortFriends)
     return { ...state }
   }
   if (action.type === 'RECIEVE_MESSAGE') {
@@ -117,35 +95,23 @@ export const reducer = (state, action) => {
       ...state.friendsv1[message.sender].messages,
       message,
     ]
-    // const friends = state.friends.map((friend) => {
-    //   if (friend.username === message.sender) {
-    //     return { ...friend, messages: [...friend.messages, message] }
-    //   }
-    //   return friend
-    // })
-    // friends.sort(sortFriends)
+
     return { ...state }
   }
   if (action.type === 'TYPING') {
     const username = action.payload
-    state.friendsv1[username].typing = true
-    // const friends = state.friends.map((friend) => {
-    //   if (friend.username === username) {
-    //     return { ...friend, typing: true }
-    //   }
-    //   return friend
-    // })
+    if (username in state.friendsv1) {
+      state.friendsv1[username].typing = true
+    }
+
     return { ...state }
   }
   if (action.type === 'STOP_TYPING') {
     const username = action.payload
-    state.friendsv1[username].typing = false
-    // const friends = state.friends.map((friend) => {
-    //   if (friend.username === username) {
-    //     return { ...friend, typing: false }
-    //   }
-    //   return friend
-    // })
+    if (username in state.friendsv1) {
+      state.friendsv1[username].typing = false
+    }
+
     return { ...state }
   }
   if (action.type === 'SEEN') {
@@ -157,24 +123,12 @@ export const reducer = (state, action) => {
     state.friendsv1[sender].messages = state.friendsv1[sender].messages.map(
       (message) => {
         if (message.sender === sender && !message.seen) {
+          ids.push(message._id)
           return { ...message, seen: true }
         }
         return message
       },
     )
-    // const friends = state.friends.map((friend) => {
-    //   if (friend.username === action.payload.from) {
-    //     const messages = friend.messages.map((message) => {
-    //       if (!message.seen && message.sender === action.payload.from) {
-    //         ids.push(message._id)
-    //         return { ...message, seen: true }
-    //       }
-    //       return message
-    //     })
-    //     return { ...friend, messages }
-    //   }
-    //   return friend
-    // })
     if (ids.length) {
       state.socket.emit('seen', {
         ids,
@@ -186,28 +140,17 @@ export const reducer = (state, action) => {
   }
   if (action.type === 'LOAD_FRIENDS') {
     const friendsv1 = {}
-    action.payload.map((friend) => {
+    const { friends, recent } = action.payload
+
+    friends.map((friend) => {
       friendsv1[friend.user.username] = {
         ...friend.user,
         messages: friend.messages,
       }
     })
-    let chatWith = state.chatWith
-    if (!state.chatWith) {
-      for (const friend in friendsv1) {
-        chatWith = friend
-        break
-      }
-    }
-    // console.log(friendsv1)
-    // friends.sort(sortFriends)
-    // let chatWith = state.chatWith
-    // if (0 in friends && !chatWith) {
-    //   chatWith = friends[0].username
-    // }
+    let chatWith = state.chatWith || recent
     return {
       ...state,
-      // friends: [...state.friends, ...friends],
       chatWith,
       friendsv1: { ...state.friendsv1, ...friendsv1 },
     }
@@ -216,41 +159,28 @@ export const reducer = (state, action) => {
   if (action.type === 'ACTIVE_USERS') {
     const activeFriends = action.payload
     for (let friend of activeFriends) {
-      state.friendsv1[friend].active = true
+      if (friend in state.friendsv1) {
+        state.friendsv1[friend].active = true
+      }
     }
-    // return state
-    // this needs to be changed ones i am done
-    // const friends = state.friends.map((friend) => {
-    //   if (activeFriends.includes(friend.username)) {
-    //     return { ...friend, active: true }
-    //   }
-    //   return friend
-    // })
+
     return { ...state }
   }
 
   if (action.type === 'USER_CONNECTED') {
     const username = action.payload
-    state.friendsv1[username].active = true
-    // console.log(username)
-    // const friends = state.friends.map((friend) => {
-    //   if (friend.username === username) {
-    //     return { ...friend, active: true }
-    //   }
-    //   return friend
-    // })
+    if (username in state.friendsv1) {
+      state.friendsv1[username].active = true
+    }
     return { ...state }
   }
   if (action.type === 'USER_DISCONNECTED') {
     const username = action.payload
-    state.friendsv1[username].active = false
-    // console.log(username)
-    // const friends = state.friends.map((friend) => {
-    //   if (friend.username === username) {
-    //     return { ...friend, active: false, typing: false }
-    //   }
-    //   return friend
-    // })
+    if (username in state.friendsv1) {
+      state.friendsv1[username].active = false
+      state.friendsv1[username].typing = false
+    }
+
     return { ...state }
   }
   // if (action.type === 'CHECK_SENDER') {

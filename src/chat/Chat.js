@@ -15,9 +15,10 @@ const socket = io('http://localhost:3001', {
 })
 
 const defaultState = {
-  friends: [], // this is a huge mistake it should be an object
+  // friends: [], // this is a huge mistake it should be an object
   // i am on the way to fix it
   friend: '',
+  // friendsv1 is updated list of friends
   friendsv1: {},
   socket,
   otherUsers: [],
@@ -33,17 +34,21 @@ function Chat() {
   const { user, setUser } = useGlobalContext()
   const [state, dispatch] = useReducer(reducer, defaultState)
 
+  // useEffect(async () => {
+  //   const check = user.friends[0]
+  //   if (!(check in state.friendsv1)) {
+  //     await axios
+  //       .get(`http://localhost:3001/user/${check}?requester=${user.username}`)
+  //       .then((res) => {
+  //         dispatch({
+  //           type: 'UPDATE_FRIENDS',
+  //           payload: { ...res.data.user, messages: res.data.messages },
+  //         })
+  //       })
+  //   }
+  // }, [user])
+
   useEffect(async () => {
-    // for (const friend of user.friends.slice(0, 10)) {
-    //   await axios
-    //     .get(`http://localhost:3001/user/${friend}?requester=${user.username}`)
-    //     .then((res) => {
-    //       dispatch({
-    //         type: 'UPDATE_FRIENDS',
-    //         payload: { ...res.data.user, messages: res.data.messages },
-    //       })
-    //     })
-    // }
     setLoadingFriends(true)
     axios
       .get('http://localhost:3001/user/friends', {
@@ -53,7 +58,10 @@ function Chat() {
         },
       })
       .then((res) => {
-        dispatch({ type: 'LOAD_FRIENDS', payload: res.data.friends })
+        dispatch({
+          type: 'LOAD_FRIENDS',
+          payload: { friends: res.data.friends, recent: user.friends[0] },
+        })
         setLoadingFriends(false)
         socket.emit('active users', { username: user.username })
       })
@@ -64,7 +72,7 @@ function Chat() {
     socket.auth = { username: user.username }
     socket.connect()
     socket.onAny((event, ...args) => {
-      // console.log(event, args)
+      console.log(event, args)
     })
 
     socket.on('user connected', (data) => {
@@ -76,31 +84,26 @@ function Chat() {
       dispatch({ type: 'USER_DISCONNECTED', payload: data.user })
     })
     socket.on('message sent', async (data) => {
-      const friends = user.friends.slice((load - 1) * 10, load * 10)
-
-      if (![...listed, ...friends].includes(data.message.sender)) {
-        axios
-          .get(
-            `http://localhost:3001/user/${data.message.sender}?requester=${user.username}`,
-          )
-          .then((res) => {
-            dispatch({
-              type: 'UPDATE_FRIENDS',
-              payload: { ...res.data.user, messages: res.data.messages },
-            })
-            listed.push(data.message.sender)
+      axios
+        .get(
+          `http://localhost:3001/user/${data.message.sender}?requester=${user.username}`,
+        )
+        .then((res) => {
+          dispatch({
+            type: 'UPDATE_FRIENDS',
+            payload: { ...res.data.user, messages: res.data.messages },
           })
-      }
-      // dispatch({
-      //   type: 'CHECK_SENDER',
-      // payload: {
-      //   sender: data.message.sender,
-      //   friends: user.friends.slice((load - 1) * 10, load * 10),
-      //   user,
-      //   setUser,
-      // },
-      // })
-      dispatch({ type: 'RECIEVE_MESSAGE', payload: data })
+        })
+      // }
+
+      // dispatch({ type: 'RECIEVE_MESSAGE', payload: data })
+      setUser((user) => {
+        return {
+          ...user,
+          friends: [...new Set([data.message.sender, ...user.friends])],
+        }
+      })
+
       sound.current.play()
     })
 
@@ -115,8 +118,13 @@ function Chat() {
       dispatch({ type: 'STOP_TYPING', payload: data })
     })
     socket.on('add friend', (data) => {
-      listed.push(data.user.username)
       dispatch({ type: 'BECOME_FRIEND', payload: data.user })
+      setUser((user) => {
+        return {
+          ...user,
+          friends: [...new Set([data.user.username, ...user.friends])],
+        }
+      })
     })
   }, [])
 
@@ -149,40 +157,14 @@ function Chat() {
             placeholder="Search for friend"
             value={state.friend}
             onChange={(e) =>
-              //instead of creating use state and usefect which runs every time
-              // search changes and filters friends using dispatch it cann happen
-              //att the same time
               dispatch({ type: 'SEARCH_FRIEND', payload: e.target.value })
             }
           />
         </div>
         <h1>Friends</h1>
-        {/* {state.friends
-          .filter((friend) => friend.username.startsWith(state.friend))
-          .map((friend, index) => {
-            return (
-              <div
-                className={
-                  state.chatWith === friend.username ? 'active-friend' : null
-                }
-                key={friend.username}
-                onClick={() => {
-                  dispatch({ type: 'CHAT_WITH', payload: friend.username })
-                  setShowFriends(false)
-                  dispatch({
-                    type: 'SEEN',
-                    payload: { from: friend.username, to: user.username },
-                  })
-                }}
-              >
-                <Friend {...friend} />
-              </div>
-            )
-          })} */}
         {user.friends
           .filter((friend) => friend.startsWith(state.friend))
           .map((friend, index) => {
-            console.log(state.friendsv1[friend])
             if (!(friend in state.friendsv1)) {
               return null
             }

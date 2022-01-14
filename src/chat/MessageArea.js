@@ -1,4 +1,4 @@
-import React, { useReducer, useState, useEffect } from 'react'
+import React, { useState, useEffect } from 'react'
 import {
   RiMoreFill,
   RiUserLine,
@@ -10,23 +10,13 @@ import {
 import Messages from './Messages'
 import { useGlobalContext } from '../context'
 import { GoPrimitiveDot } from 'react-icons/go'
+import axios from 'axios'
 
 function MessageArea({ body, dispatch, socket }) {
   const { user } = useGlobalContext()
   const [message, setMessage] = useState('')
-  // useEffect(() => {
-  //   dispatch({ type: 'RESET', payload: defaultState })
-  // }, [body])
-  // useEffect(async () => {
-  //   socket.auth = { username: user.username }
-  //   socket.connect()
-  //   socket.onAny((event, ...args) => {
-  //     // console.log(event, args)
-  //   })
-  //   socket.on('message sent', (data) => {
-  //     dispatch({ type: 'MESSAGE_RECIEVED', payload: data })
-  //   })
-  // }, [])
+  const [image, setImage] = useState('')
+
   const typing = () => {
     socket.emit('typing', {
       from: user.username,
@@ -40,111 +30,141 @@ function MessageArea({ body, dispatch, socket }) {
     })
   }
   return (
-    <div className="chat-area">
-      <header>
-        <div className="body-info">
-          <img className="body-img" src={body.img} alt={body.username} />
-          <h2 className="body-name">
-            {body.username}{' '}
-            {body.active ? (
-              <span className="active-user" style={{ position: 'static' }}>
-                <GoPrimitiveDot />
-              </span>
-            ) : (
-              <span
-                className="active-user"
-                style={{ position: 'static', color: 'orange' }}
-              >
-                <GoPrimitiveDot />
-              </span>
-            )}
-          </h2>
-        </div>
-        <div className="tools-cont">
-          <i>
-            <RiSearchLine />
-          </i>
-          <i>
-            <RiUserLine />
-          </i>
-          <i>
-            <RiMoreFill />
-          </i>
-        </div>
-      </header>
-      {body.username ? <Messages {...body} /> : null}
-      <form
-        className="send-area"
-        onSubmit={(e) => {
-          e.preventDefault()
-          if (message) {
-            // socket.emit fires twice when in reducer
-            //but even so i call reducer to update data for local user
-            stopTyping()
-            dispatch({
-              type: 'SEND_MESSAGE',
-              payload: { message, to: body.username, from: user.username },
-            })
-
-            socket.emit('message sent', {
-              content: message,
-              to: body.username,
-              from: user.username,
-            })
-            setMessage('')
-          }
-        }}
-      >
-        <div className="input-cont">
-          <input
-            type="text"
-            placeholder="Enter Message..."
-            value={message}
-            onFocus={() => {
-              typing()
-              dispatch({
-                type: 'SEEN',
-                payload: { from: body.username, to: user.username },
-              })
-            }}
-            onBlur={stopTyping}
-            onChange={(e) => {
-              // to not emit socket every time message changes just when it
-              // first changes after the message was sent
-              if (!message) {
-                typing()
+    <>
+      {'username' in body ? (
+        <div className="chat-area">
+          {image ? <img src={image} /> : null}
+          <header>
+            <div className="body-info">
+              <img className="body-img" src={body.img} alt={body.username} />
+              <h2 className="body-name">
+                {body.username}{' '}
+                {body.active ? (
+                  <span className="active-user" style={{ position: 'static' }}>
+                    <GoPrimitiveDot />
+                  </span>
+                ) : (
+                  <span
+                    className="active-user"
+                    style={{ position: 'static', color: 'orange' }}
+                  >
+                    <GoPrimitiveDot />
+                  </span>
+                )}
+              </h2>
+            </div>
+            <div className="tools-cont">
+              <i>
+                <RiSearchLine />
+              </i>
+              <i>
+                <RiUserLine />
+              </i>
+              <i>
+                <RiMoreFill />
+              </i>
+            </div>
+          </header>
+          {body.username ? <Messages {...body} /> : null}
+          <form
+            className="send-area"
+            onSubmit={(e) => {
+              e.preventDefault()
+              if (message) {
+                // socket.emit fires twice when in reducer
+                //but even so i call reducer to update data for local user
+                stopTyping()
                 dispatch({
-                  type: 'SEEN',
-                  payload: { from: body.username, to: user.username },
+                  type: 'SEND_MESSAGE',
+                  payload: { message, to: body.username, from: user.username },
                 })
+
+                socket.emit('message sent', {
+                  content: message,
+                  to: body.username,
+                  from: user.username,
+                })
+                setMessage('')
               }
-              setMessage(e.target.value)
             }}
-          />
+          >
+            <div className="input-cont">
+              <input
+                type="text"
+                placeholder="Enter Message..."
+                value={message}
+                onFocus={() => {
+                  typing()
+                  dispatch({
+                    type: 'SEEN',
+                    payload: { from: body.username, to: user.username },
+                  })
+                }}
+                onBlur={stopTyping}
+                onChange={(e) => {
+                  // to not emit socket every time message changes just when it
+                  // first changes after the message was sent
+                  if (!message) {
+                    typing()
+                    dispatch({
+                      type: 'SEEN',
+                      payload: { from: body.username, to: user.username },
+                    })
+                  }
+                  setMessage(e.target.value)
+                }}
+              />
+            </div>
+            <div className="message-icons">
+              <i>
+                <RiAttachmentLine />
+              </i>
+              <label htmlFor="image">
+                <i>
+                  <RiImageFill />
+                </i>
+              </label>
+              <input
+                type="file"
+                id="image"
+                accept="image/*"
+                style={{ display: 'none' }}
+              />
+
+              <button
+                type="submit"
+                style={{ border: 'none', borderRadius: '5px' }}
+              >
+                <i
+                  style={{
+                    backgroundColor: '#7269ef',
+                    color: 'white',
+                    cursor: 'pointer',
+                    padding: '0',
+                    margin: '0',
+                  }}
+                >
+                  <RiSendPlane2Fill />
+                </i>
+              </button>
+            </div>
+          </form>
         </div>
-        <div className="message-icons">
-          <i>
-            <RiAttachmentLine />
-          </i>
-          <i>
-            <RiImageFill />
-          </i>
-          <button type="submit" style={{ border: 'none', borderRadius: '5px' }}>
-            <i
-              style={{
-                backgroundColor: '#7269ef',
-                color: 'white',
-                cursor: 'pointer',
-                padding: '0',
-                margin: '0',
-              }}
-            >
-              <RiSendPlane2Fill />
-            </i>
-          </button>
+      ) : (
+        <div
+          style={{
+            height: '100vh',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+          }}
+        >
+          <h1 style={{ color: 'white' }}>
+            Your friends are loading or you don't have nay friends yet
+          </h1>
         </div>
-      </form>
-    </div>
+      )}
+    </>
   )
 }
 

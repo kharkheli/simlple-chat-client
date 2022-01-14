@@ -311,7 +311,7 @@ code {
   border-radius: 5px;
 }
 
-.message-icons > i > * {
+.message-icons i > * {
   cursor: pointer;
 }
 
