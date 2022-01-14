@@ -18,6 +18,7 @@ const defaultState = {
   friends: [], // this is a huge mistake it should be an object
   // i am on the way to fix it
   friend: '',
+  friendsv1: {},
   socket,
   otherUsers: [],
   loadingUsers: false,
@@ -156,7 +157,7 @@ function Chat() {
           />
         </div>
         <h1>Friends</h1>
-        {state.friends
+        {/* {state.friends
           .filter((friend) => friend.username.startsWith(state.friend))
           .map((friend, index) => {
             return (
@@ -175,6 +176,30 @@ function Chat() {
                 }}
               >
                 <Friend {...friend} />
+              </div>
+            )
+          })} */}
+        {user.friends
+          .filter((friend) => friend.startsWith(state.friend))
+          .map((friend, index) => {
+            console.log(state.friendsv1[friend])
+            if (!(friend in state.friendsv1)) {
+              return null
+            }
+            return (
+              <div
+                className={state.chatWith === friend ? 'active-friend' : null}
+                key={friend}
+                onClick={() => {
+                  dispatch({ type: 'CHAT_WITH', payload: friend })
+                  setShowFriends(false)
+                  dispatch({
+                    type: 'SEEN',
+                    payload: { from: friend, to: user.username },
+                  })
+                }}
+              >
+                <Friend {...state.friendsv1[friend]} />
               </div>
             )
           })}
@@ -209,11 +234,7 @@ function Chat() {
           <RiArrowLeftSLine />
         </span>
         <MessageArea
-          body={
-            state.friends.filter(
-              (friend) => friend.username === state.chatWith,
-            )[0] || {}
-          }
+          body={state.friendsv1[state.chatWith] || {}}
           dispatch={dispatch}
           socket={state.socket}
         />
