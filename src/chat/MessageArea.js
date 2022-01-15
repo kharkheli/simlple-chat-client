@@ -105,7 +105,18 @@ function MessageArea({ body, dispatch, socket }) {
               <div className="prev-img-cont">
                 <img className="prev-img" src={imagePath} />
                 <div className="image-cation-cont">
-                  <span className="image-action" style={{ left: '20px' }}>
+                  <span
+                    className="image-action"
+                    style={{ left: '20px' }}
+                    onClick={() => {
+                      setImagePath('')
+                      axios.delete(
+                        `http://localhost:3001/uploads/img?name=${
+                          imagePath.split('/')[4]
+                        }`,
+                      )
+                    }}
+                  >
                     cancel
                   </span>
                   <span

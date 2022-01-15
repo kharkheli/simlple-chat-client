@@ -3,7 +3,7 @@
   min-height: 590px;
   width: 100%;
   overflow: hidden;
-  background: url('./photoes/bg.gif');
+  background: url('../photoes/bg.gif');
   display: flex;
 }
 

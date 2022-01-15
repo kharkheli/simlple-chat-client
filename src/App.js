@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react'
-import LogIn from './LogIn'
+import LogIn from './authenticate/LogIn'
 import {
   BrowserRouter as Router,
   Route,
@@ -9,7 +9,7 @@ import {
 
 import { useGlobalContext } from './context'
 import Chat from './chat/Chat'
-import Error from './Error'
+import Error from './error/Error'
 
 function App() {
   //importing if user is already signed in and displaying page acordingly

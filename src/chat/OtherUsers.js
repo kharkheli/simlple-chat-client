@@ -1,12 +1,10 @@
 import React, { useState } from 'react'
 import { RiUserAddLine } from 'react-icons/ri'
-import Greeting from '../Greeting'
 import axios from 'axios'
 import { useGlobalContext } from '../context'
 
 function OtherUsers({ socket, dispatch, user }) {
   const { user: theGuy, setUser } = useGlobalContext()
-  const [modal, setModal] = useState(false)
   const addFriend = async () => {
     // no need to set this state to false because after click
     //this component will dissapear from the dom tree
@@ -28,9 +26,6 @@ function OtherUsers({ socket, dispatch, user }) {
   }
   return (
     <div className="friend" style={{ cursor: 'default' }}>
-      {modal ? (
-        <Greeting message={`${user.username} has been added to friends`} />
-      ) : null}
       <div className="friend-img-cont">
         <img className="friend-img" src={user.img} alt={user.username} />
       </div>

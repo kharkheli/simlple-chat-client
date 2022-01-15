@@ -1,7 +1,7 @@
 import React, { useState } from 'react'
 import axios from 'axios'
 import { Navigate } from 'react-router-dom'
-import { useGlobalContext } from './context'
+import { useGlobalContext } from '../context'
 
 function LogIn() {
   const [redirect, setRedirect] = useState(false)
