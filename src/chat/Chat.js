@@ -17,13 +17,15 @@ const socket = io('http://localhost:3001', {
 const defaultState = {
   // friends: [], // this is a huge mistake it should be an object
   // i am on the way to fix it
-  friend: '',
+
+  friend: '', //this is search bar value
   // friendsv1 is updated list of friends
   friendsv1: {},
   socket,
   otherUsers: [],
   loadingUsers: false,
   chatWith: undefined,
+  searchedFriends: {},
 }
 
 function Chat() {
@@ -72,15 +74,15 @@ function Chat() {
     socket.auth = { username: user.username }
     socket.connect()
     socket.onAny((event, ...args) => {
-      console.log(event, args)
+      // console.log(event, args)
     })
 
     socket.on('user connected', (data) => {
-      // console.log(data)
+      // // console.log(data)
       dispatch({ type: 'USER_CONNECTED', payload: data.user })
     })
     socket.on('user disconnected', (data) => {
-      // console.log(data)
+      // // console.log(data)
       dispatch({ type: 'USER_DISCONNECTED', payload: data.user })
     })
     socket.on('message sent', async (data) => {
@@ -129,10 +131,29 @@ function Chat() {
   }, [])
 
   useEffect(async () => {
+    setLoadingFriends(true)
+    axios
+      .get('http://localhost:3001/user/friends', {
+        params: {
+          requester: user.username,
+          usernames: user.friends
+            .filter((friend) => friend.startsWith(state.friend))
+            .slice(0, 10),
+        },
+      })
+      .then((res) => {
+        dispatch({
+          type: 'SEARCHED_FRIENDS',
+          payload: { friends: res.data.friends },
+        })
+        setLoadingFriends(false)
+      })
+
     dispatch({ type: 'LOADING_USERS' })
     axios
       .get(
-        `http://localhost:3001/user?starter=${state.friend}&username=${user.username}`,
+        //addinmg limit and skip so it will return maximum of 10 users
+        `http://localhost:3001/user?starter=${state.friend}&username=${user.username}&limit=10skip=0`,
       )
       .then((res) => {
         dispatch({ type: 'USER_SEARCH', payload: res.data })
@@ -162,29 +183,50 @@ function Chat() {
           />
         </div>
         <h1>Friends</h1>
-        {user.friends
-          .filter((friend) => friend.startsWith(state.friend))
-          .map((friend, index) => {
-            if (!(friend in state.friendsv1)) {
-              return null
-            }
-            return (
-              <div
-                className={state.chatWith === friend ? 'active-friend' : null}
-                key={friend}
-                onClick={() => {
-                  dispatch({ type: 'CHAT_WITH', payload: friend })
-                  setShowFriends(false)
-                  dispatch({
-                    type: 'SEEN',
-                    payload: { from: friend, to: user.username },
-                  })
-                }}
-              >
-                <Friend {...state.friendsv1[friend]} />
-              </div>
-            )
-          })}
+        {state.friend
+          ? user.friends.map((friend) => {
+              if (!(friend in state.searchedFriends)) {
+                return null
+              }
+              return (
+                <div
+                  className={state.chatWith === friend ? 'active-friend' : null}
+                  key={friend}
+                  onClick={() => {
+                    dispatch({ type: 'CHAT_WITH', payload: friend })
+                    setShowFriends(false)
+                    dispatch({ type: 'SEARCH_FRIEND', payload: '' })
+                    dispatch({
+                      type: 'SEEN',
+                      payload: { from: friend, to: user.username },
+                    })
+                  }}
+                >
+                  <Friend {...state.friendsv1[friend]} />
+                </div>
+              )
+            })
+          : user.friends.map((friend) => {
+              if (!(friend in state.friendsv1)) {
+                return null
+              }
+              return (
+                <div
+                  className={state.chatWith === friend ? 'active-friend' : null}
+                  key={friend}
+                  onClick={() => {
+                    dispatch({ type: 'CHAT_WITH', payload: friend })
+                    setShowFriends(false)
+                    dispatch({
+                      type: 'SEEN',
+                      payload: { from: friend, to: user.username },
+                    })
+                  }}
+                >
+                  <Friend {...state.friendsv1[friend]} />
+                </div>
+              )
+            })}
         {/* i coulnt have done load more on scroll because friends are followed
           other users and that would make no sense */}
         {loadingFriends ? (

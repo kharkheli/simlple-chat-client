@@ -90,7 +90,7 @@ export const reducer = (state, action) => {
   }
   if (action.type === 'RECIEVE_MESSAGE') {
     const { message } = action.payload
-    // // console.log(message)
+    // // // console.log(message)
     state.friendsv1[message.sender].messages = [
       ...state.friendsv1[message.sender].messages,
       message,
@@ -183,6 +183,18 @@ export const reducer = (state, action) => {
 
     return { ...state }
   }
+  if (action.type === 'SEARCHED_FRIENDS') {
+    const searchedFriends = {}
+    const { friends } = action.payload
+
+    friends.map((friend) => {
+      searchedFriends[friend.user.username] = {
+        ...friend.user,
+        messages: friend.messages,
+      }
+    })
+    return { ...state, searchedFriends }
+  }
   // if (action.type === 'CHECK_SENDER') {
   //   const { sender, friends, setUser, user } = action.payload
   //   let newFriend
@@ -193,7 +205,7 @@ export const reducer = (state, action) => {
   //         newFriend = { ...res.data.user, messages: res.data.messages }
   //       })
   //   }
-  //   // console.log(newFriend)
+  //   // // console.log(newFriend)
   // }
 
   return state

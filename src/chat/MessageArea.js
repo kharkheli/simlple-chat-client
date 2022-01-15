@@ -6,6 +6,7 @@ import {
   RiAttachmentLine,
   RiImageFill,
   RiSendPlane2Fill,
+  RiLogoutCircleRLine,
 } from 'react-icons/ri'
 import Messages from './Messages'
 import { useGlobalContext } from '../context'
@@ -16,7 +17,24 @@ function MessageArea({ body, dispatch, socket }) {
   const { user } = useGlobalContext()
   const [message, setMessage] = useState('')
   const [image, setImage] = useState('')
+  const [moreOptions, setMoreOptions] = useState(false)
 
+  useEffect(() => {
+    window.addEventListener('click', (e) => {
+      if (e.target.id === 'more-options') {
+        setMoreOptions((old) => {
+          return !old
+        })
+      } else {
+        if (e.target.id === 'log-out') {
+          localStorage.removeItem('user')
+          window.location.reload()
+        } else {
+          setMoreOptions(false)
+        }
+      }
+    })
+  }, [])
   const typing = () => {
     socket.emit('typing', {
       from: user.username,
@@ -60,8 +78,18 @@ function MessageArea({ body, dispatch, socket }) {
               <i>
                 <RiUserLine />
               </i>
+              {moreOptions ? (
+                <div className="more-options">
+                  <div className="option" id="log-out">
+                    Log out{' '}
+                    <i>
+                      <RiLogoutCircleRLine />
+                    </i>
+                  </div>
+                </div>
+              ) : null}
               <i>
-                <RiMoreFill />
+                <RiMoreFill id="more-options" />
               </i>
             </div>
           </header>

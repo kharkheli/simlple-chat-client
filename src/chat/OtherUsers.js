@@ -13,8 +13,9 @@ function OtherUsers({ socket, dispatch, user }) {
     // setModal(true)
 
     dispatch({ type: 'ADD_FRIEND', payload: user.username })
+    dispatch({ type: 'SEARCH_FRIEND', payload: '' })
     setUser({ ...theGuy, friends: [...theGuy.friends, user.username] })
-    // console.log(theGuy)
+    // // console.log(theGuy)
     socket.emit('add friend', {
       from: theGuy.username,
       to: user.username,
