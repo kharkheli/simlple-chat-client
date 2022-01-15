@@ -11,7 +11,7 @@ function LogIn() {
     e.preventDefault()
     if (username) {
       await axios
-        .post('http://localhost:3001/user/log-in', { username })
+        .post('https://simple-chat-03.herokuapp.com/user/log-in', { username })
         .then((res) => {
           // // console.log(res.data)
           const userData = {

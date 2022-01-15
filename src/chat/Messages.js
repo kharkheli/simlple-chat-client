@@ -24,7 +24,7 @@ function Messages({ body, dispatch }) {
         if (e.target.scrollTop === 0 && load === 'loaded') {
           setLoad('loading')
           await axios
-            .get('http://localhost:3001/user/messages', {
+            .get('https://simple-chat-03.herokuapp.com/user/messages', {
               params: {
                 user: user.username,
                 friend: body.username,

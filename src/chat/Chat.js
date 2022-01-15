@@ -10,7 +10,7 @@ import { reducer } from './reducer'
 import msgSound from '../message1.mp3'
 import { RiArrowLeftSLine } from 'react-icons/ri'
 
-const socket = io('http://localhost:3001', {
+const socket = io('https://simple-chat-03.herokuapp.com', {
   autoConnect: false,
 })
 
@@ -39,7 +39,7 @@ function Chat() {
   useEffect(async () => {
     setLoadingFriends(true)
     axios
-      .get('http://localhost:3001/user/friends', {
+      .get('https://simple-chat-03.herokuapp.com/user/friends', {
         params: {
           requester: user.username,
           usernames: user.friends.slice((load - 1) * 10, load * 10),
@@ -74,7 +74,7 @@ function Chat() {
     socket.on('message sent', async (data) => {
       axios
         .get(
-          `http://localhost:3001/user/${data.message.sender}?requester=${user.username}`,
+          `https://simple-chat-03.herokuapp.com/user/${data.message.sender}?requester=${user.username}`,
         )
         .then((res) => {
           dispatch({
@@ -119,7 +119,7 @@ function Chat() {
   useEffect(async () => {
     setLoadingFriends(true)
     axios
-      .get('http://localhost:3001/user/friends', {
+      .get('https://simple-chat-03.herokuapp.com/user/friends', {
         params: {
           requester: user.username,
           usernames: user.friends
@@ -139,7 +139,7 @@ function Chat() {
     axios
       .get(
         //addinmg limit and skip so it will return maximum of 10 users
-        `http://localhost:3001/user?starter=${state.friend}&username=${user.username}&limit=10skip=0`,
+        `https://simple-chat-03.herokuapp.com/user?starter=${state.friend}&username=${user.username}&limit=10skip=0`,
       )
       .then((res) => {
         dispatch({ type: 'USER_SEARCH', payload: res.data })

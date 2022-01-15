@@ -209,7 +209,7 @@ export const reducer = (state, action) => {
   //   let newFriend
   //   if (!friends.includes(sender)) {
   //     axios
-  //       .get(`http://localhost:3001/user/${sender}?requester=${user.username}`)
+  //       .get(`https://simple-chat-03.herokuapp.com/user/${sender}?requester=${user.username}`)
   //       .then((res) => {
   //         newFriend = { ...res.data.user, messages: res.data.messages }
   //       })

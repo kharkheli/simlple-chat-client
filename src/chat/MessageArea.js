@@ -52,13 +52,13 @@ function MessageArea({ body, dispatch, socket }) {
     const form = new FormData()
     form.append('image', image)
     axios
-      .post('http://localhost:3001/uploads/img', form, {
+      .post('https://simple-chat-03.herokuapp.com/uploads/img', form, {
         headers: {
           'Content-Type': 'multipart/form-data',
         },
       })
       .then((res) => {
-        setImagePath('http://localhost:3001/' + res.data.path)
+        setImagePath('https://simple-chat-03.herokuapp.com/' + res.data.path)
       })
   }
   const sendMessage = (e) => {
@@ -111,7 +111,7 @@ function MessageArea({ body, dispatch, socket }) {
                     onClick={() => {
                       setImagePath('')
                       axios.delete(
-                        `http://localhost:3001/uploads/img?name=${
+                        `https://simple-chat-03.herokuapp.com/uploads/img?name=${
                           imagePath.split('/')[4]
                         }`,
                       )

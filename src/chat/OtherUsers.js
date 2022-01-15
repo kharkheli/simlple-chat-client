@@ -19,7 +19,7 @@ function OtherUsers({ socket, dispatch, user }) {
       to: user.username,
       theGuy,
     })
-    axios.patch('http://localhost:3001/user', {
+    axios.patch('https://simple-chat-03.herokuapp.com/user', {
       user: theGuy.username,
       friend: user.username,
     })

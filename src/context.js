@@ -12,9 +12,11 @@ const UserProvider = ({ children }) => {
   useEffect(async () => {
     const username = localStorage.getItem('user')
     if (username) {
-      axios(`http://localhost:3001/user/${username}`).then((res) => {
-        setUser(res.data)
-      })
+      axios(`https://simple-chat-03.herokuapp.com/user/${username}`).then(
+        (res) => {
+          setUser(res.data)
+        },
+      )
     }
   }, [])
   return (
