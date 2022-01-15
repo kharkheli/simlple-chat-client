@@ -75,13 +75,14 @@ export const reducer = (state, action) => {
     }
   }
   if (action.type === 'SEND_MESSAGE') {
-    const { message, to, from } = action.payload
+    const { message, to, from, type } = action.payload
     const time = new Date()
     state.friendsv1[to].messages = [
       ...state.friendsv1[to].messages,
       {
         msg: message,
         sender: from,
+        type: type || 'text',
         time: time.getTime(),
         createdAt: time,
       },
@@ -194,6 +195,14 @@ export const reducer = (state, action) => {
       }
     })
     return { ...state, searchedFriends }
+  }
+  if (action.type === 'MESSAGES_LOADED') {
+    const { messages, friend } = action.payload
+    state.friendsv1[friend].messages = [
+      ...messages,
+      ...state.friendsv1[friend].messages,
+    ]
+    return { ...state }
   }
   // if (action.type === 'CHECK_SENDER') {
   //   const { sender, friends, setUser, user } = action.payload

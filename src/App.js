@@ -9,6 +9,7 @@ import {
 
 import { useGlobalContext } from './context'
 import Chat from './chat/Chat'
+import Error from './Error'
 
 function App() {
   //importing if user is already signed in and displaying page acordingly
@@ -28,6 +29,7 @@ function App() {
             path="/"
             element={user.username ? <Chat /> : <Navigate to="/sign-in" />}
           />
+          <Route path="*" element={<Error />} />
         </Routes>
         {/* <h1>{data ? data : 'LOADING...'}</h1> */}
       </Router>

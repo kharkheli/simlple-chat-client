@@ -36,20 +36,6 @@ function Chat() {
   const { user, setUser } = useGlobalContext()
   const [state, dispatch] = useReducer(reducer, defaultState)
 
-  // useEffect(async () => {
-  //   const check = user.friends[0]
-  //   if (!(check in state.friendsv1)) {
-  //     await axios
-  //       .get(`http://localhost:3001/user/${check}?requester=${user.username}`)
-  //       .then((res) => {
-  //         dispatch({
-  //           type: 'UPDATE_FRIENDS',
-  //           payload: { ...res.data.user, messages: res.data.messages },
-  //         })
-  //       })
-  //   }
-  // }, [user])
-
   useEffect(async () => {
     setLoadingFriends(true)
     axios

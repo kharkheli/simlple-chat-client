@@ -14,9 +14,9 @@ import { GoPrimitiveDot } from 'react-icons/go'
 import axios from 'axios'
 
 function MessageArea({ body, dispatch, socket }) {
-  const { user } = useGlobalContext()
+  const { user, setUser } = useGlobalContext()
   const [message, setMessage] = useState('')
-  const [image, setImage] = useState('')
+  const [imagePath, setImagePath] = useState('')
   const [moreOptions, setMoreOptions] = useState(false)
 
   useEffect(() => {
@@ -47,11 +47,96 @@ function MessageArea({ body, dispatch, socket }) {
       to: body.username,
     })
   }
+  const sendImage = (e) => {
+    const image = e.target.files[0]
+    const form = new FormData()
+    form.append('image', image)
+    axios
+      .post('http://localhost:3001/uploads/img', form, {
+        headers: {
+          'Content-Type': 'multipart/form-data',
+        },
+      })
+      .then((res) => {
+        setImagePath('http://localhost:3001/' + res.data.path)
+      })
+  }
+  const sendMessage = (e) => {
+    e.preventDefault()
+    if (message) {
+      // socket.emit fires twice when in reducer
+      //but even so i call reducer to update data for local user
+      stopTyping()
+      let type = 'text'
+      if (message.startsWith('http')) {
+        type = 'link'
+      }
+      dispatch({
+        type: 'SEND_MESSAGE',
+        payload: {
+          message,
+          to: body.username,
+          type,
+          from: user.username,
+        },
+      })
+      setUser((user) => {
+        return {
+          ...user,
+          friends: [...new Set([body.username, ...user.friends])],
+        }
+      })
+
+      socket.emit('message sent', {
+        content: message,
+        type,
+        to: body.username,
+        from: user.username,
+      })
+      setMessage('')
+    }
+  }
   return (
     <>
       {'username' in body ? (
         <div className="chat-area">
-          {image ? <img src={image} /> : null}
+          {imagePath ? (
+            <div className="image-prev">
+              <div className="prev-img-cont">
+                <img className="prev-img" src={imagePath} />
+                <div className="image-cation-cont">
+                  <span className="image-action" style={{ left: '20px' }}>
+                    cancel
+                  </span>
+                  <span
+                    className="image-action"
+                    style={{ right: '20px' }}
+                    onClick={() => {
+                      dispatch({
+                        type: 'SEND_MESSAGE',
+                        payload: {
+                          message: imagePath,
+                          type: 'image',
+                          to: body.username,
+                          from: user.username,
+                        },
+                      })
+
+                      socket.emit('message sent', {
+                        content: imagePath,
+                        type: 'image',
+                        to: body.username,
+                        from: user.username,
+                      })
+                      setImagePath('')
+                    }}
+                  >
+                    send
+                  </span>
+                </div>
+              </div>
+            </div>
+          ) : null}
           <header>
             <div className="body-info">
               <img className="body-img" src={body.img} alt={body.username} />
@@ -72,12 +157,6 @@ function MessageArea({ body, dispatch, socket }) {
               </h2>
             </div>
             <div className="tools-cont">
-              <i>
-                <RiSearchLine />
-              </i>
-              <i>
-                <RiUserLine />
-              </i>
               {moreOptions ? (
                 <div className="more-options">
                   <div className="option" id="log-out">
@@ -93,29 +172,8 @@ function MessageArea({ body, dispatch, socket }) {
               </i>
             </div>
           </header>
-          {body.username ? <Messages {...body} /> : null}
-          <form
-            className="send-area"
-            onSubmit={(e) => {
-              e.preventDefault()
-              if (message) {
-                // socket.emit fires twice when in reducer
-                //but even so i call reducer to update data for local user
-                stopTyping()
-                dispatch({
-                  type: 'SEND_MESSAGE',
-                  payload: { message, to: body.username, from: user.username },
-                })
-
-                socket.emit('message sent', {
-                  content: message,
-                  to: body.username,
-                  from: user.username,
-                })
-                setMessage('')
-              }
-            }}
-          >
+          {body.username ? <Messages body={body} dispatch={dispatch} /> : null}
+          <form className="send-area" onSubmit={sendMessage}>
             <div className="input-cont">
               <input
                 type="text"
@@ -144,9 +202,6 @@ function MessageArea({ body, dispatch, socket }) {
               />
             </div>
             <div className="message-icons">
-              <i>
-                <RiAttachmentLine />
-              </i>
               <label htmlFor="image">
                 <i>
                   <RiImageFill />
@@ -157,6 +212,7 @@ function MessageArea({ body, dispatch, socket }) {
                 id="image"
                 accept="image/*"
                 style={{ display: 'none' }}
+                onChange={sendImage}
               />
 
               <button
